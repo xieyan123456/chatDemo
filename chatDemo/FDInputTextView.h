@@ -8,16 +8,16 @@
 
 #import <UIKit/UIKit.h>
 
-@class FDInputTextView;
+@interface FDInputTextView : UITextView
 
-@protocol FDInputTextViewDelegate <NSObject>
+/** textView最大行数 */
+@property (nonatomic, assign) NSUInteger maxNumberOfLines;
 
-- (void)inputTextView:(FDInputTextView *)textView heightDidChange:(CGFloat)height;
-- (BOOL)inputTextView:(FDInputTextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text;
-- (void)inputTextViewDidChange:(FDInputTextView *)textView;
+/**
+ *  文字高度改变block → 文字高度改变会自动调用
+ *  block参数(text) → 文字内容
+ *  block参数(textHeight) → 文字高度
+ */
+@property (nonatomic, strong) void(^fd_textHeightChangeBlock)(CGFloat textHeight);
 
-@end
-
-@interface FDInputTextView : UITextView<UITextViewDelegate>
-@property (nonatomic, weak) id <FDInputTextViewDelegate>changeDelegate;
 @end

@@ -18,7 +18,7 @@
 #import "NSString+Helper.h"
 #import "MJRefresh.h"
 
-@interface FDChatViewController ()<FDChatMoreViewDelegate,FDInputTextViewDelegate>
+@interface FDChatViewController ()<FDChatMoreViewDelegate,UITextViewDelegate>
 @property (weak, nonatomic) IBOutlet UITableView *chatTableView;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *inputViewHeightConstraint;
 @property (weak, nonatomic) IBOutlet FDInputTextView *inputTextView;
@@ -64,8 +64,20 @@
 #pragma mark - privateMethod
 
 - (void)initialize{
+    //导航栏标题
+    self.navigationItem.title = @"在线客服";
     //设置输入框相关属性
-    self.inputTextView.changeDelegate = self;
+    self.inputTextView.delegate = self;
+    __weak typeof(self) weakSelf = self;
+    self.inputTextView.maxNumberOfLines = 4;
+    [self.inputTextView setFd_textHeightChangeBlock:^(CGFloat maxHeight) {
+        // 工具栏高度随输入文字变化
+        weakSelf.inputViewHeightConstraint.constant = maxHeight + 10;
+        [UIView animateWithDuration:0.25 animations:^{
+            [weakSelf.view layoutIfNeeded];
+          //  [weakSelf chatTableViewScrollToBottom];
+        }];
+    }];
     //手势
     self.hideKeyboardTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(hideKeyBoard)];
     self.activeSystemKeyboardTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(activeSystemKeyboard)];
@@ -121,7 +133,6 @@
     }
     return _emotionKeyboard;
 }
-
 
 - (NSMutableArray *)messageFrames
 {
@@ -329,28 +340,18 @@
     }
 }
 
-#pragma mark - FDInputTextViewDelegate
+#pragma mark - UITextViewDelegate
 
-- (void)inputTextView:(FDInputTextView *)textView heightDidChange:(CGFloat)height{
-    //  工具栏高度随输入文字变化
-    self.inputViewHeightConstraint.constant =  (height > 44) ? height + 10 : 44;
-    [UIView animateWithDuration:0.25 animations:^{
-        [self.view layoutIfNeeded];
-        [self chatTableViewScrollToBottom];
-    }];
+- (void)textViewDidChange:(UITextView *)textView{
+    self.sendButton.enabled = textView.hasText;
 }
 
-- (BOOL)inputTextView:(FDInputTextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text{
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text{
     if ([text isEqualToString: @"\n"]) {
         [self sendMessage];
         return  NO;
     }
     return YES;
-}
-
-- (void)inputTextViewDidChange:(FDInputTextView *)textView{
-    // 按钮有文字才可点击
-    self.sendButton.enabled = textView.hasText;
 }
 
 #pragma mark - scrollView代理方法

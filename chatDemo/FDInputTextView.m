@@ -8,10 +8,14 @@
 
 #import "FDInputTextView.h"
 
-//刚好可以显示5行
-#define maxHeight 98
-@implementation FDInputTextView
+@interface FDInputTextView()
+/** 文字高度 */
+@property (nonatomic, assign) NSInteger textH;
+/** 文字最大高度 */
+@property (nonatomic, assign) NSInteger maxTextH;
+@end
 
+@implementation FDInputTextView
 
 - (instancetype)initWithFrame:(CGRect)frame{
     if (self = [super initWithFrame:frame]) {
@@ -33,34 +37,34 @@
     self.layer.cornerRadius = 5.0;
     self.layer.borderColor = [[UIColor colorWithRed:220.0/255.0 green:220.0/255.0 blue:220.0/255.0 alpha:1.0] CGColor];
     self.showsVerticalScrollIndicator = NO;
-//    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(inputTextViewDidChange) name:UITextViewTextDidChangeNotification object:nil];
-    self.delegate = self;
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(textDidChange) name:UITextViewTextDidChangeNotification object:self];
 }
 
-#pragma mark - UITextViewDelegate
 
--(void)textViewDidChange:(UITextView *)textView{
-    static CGFloat originalHeight = 0;
-    if ([self.changeDelegate respondsToSelector:@selector(inputTextViewDidChange:)]) {
-        [self.changeDelegate inputTextViewDidChange:self];
+- (void)setMaxNumberOfLines:(NSUInteger)maxNumberOfLines
+{
+    _maxNumberOfLines = maxNumberOfLines;
+    
+    // 计算最大高度 = (每行高度 * 总行数 + 文字上下间距)
+    _maxTextH = ceil(self.font.lineHeight * maxNumberOfLines + self.textContainerInset.top + self.textContainerInset.bottom);
+    
+}
+
+- (void)textDidChange
+{
+    NSInteger height = ceilf([self sizeThatFits:CGSizeMake(self.bounds.size.width, MAXFLOAT)].height);
+    if (_textH != height) { // 高度不一样，就改变了高度
+        // 最大高度，可以滚动
+        self.scrollEnabled = height > _maxTextH && _maxTextH > 0;
+        _textH = height;
+        if (self.fd_textHeightChangeBlock && self.scrollEnabled == NO) {
+            self.fd_textHeightChangeBlock(height);
+        }
     }
-    //根据输入文本算高度
-    CGFloat curHeight = textView.contentSize.height;
-    //传出去的高度
-    CGFloat fHeight = curHeight > maxHeight ? maxHeight : curHeight;
-    //如果此次高度与上次一样直接返回
-    if (originalHeight == fHeight) return;
-           dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-               if ([self.changeDelegate respondsToSelector:@selector(inputTextView:heightDidChange:)]) {
-                   [self.changeDelegate inputTextView:self heightDidChange:fHeight];
-                   originalHeight = fHeight;
-               }
-    });
 }
 
-- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text{
-    return [self.changeDelegate inputTextView:self shouldChangeTextInRange:range replacementText:text];
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UITextViewTextDidChangeNotification object:nil];
 }
-
-
 @end

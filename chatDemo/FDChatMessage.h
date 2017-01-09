@@ -34,24 +34,16 @@ typedef NS_ENUM(NSInteger,FDChatMessageType) {
 ///** 是否发送 */
 //@property (nonatomic, copy) NSString *markid;
 
-/**
- *  正文
- */
+/** 正文 */
 @property (nonatomic, copy)NSString *text;
 
-/**
- *  时间
- */
+/** 时间 */
 @property (nonatomic, copy)NSString *time;
 
-/**
- *  消息类型
- */
+/** 消息类型 */
 @property (nonatomic, assign) FDChatMessageType type ;
 
-/**
- *  是否隐藏事件
- */
+/** 是否隐藏事件 */
 @property (nonatomic, assign)BOOL hideTime;
 
 + (instancetype)messageWithDict:(NSDictionary *)dict;
