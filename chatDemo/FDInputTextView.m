@@ -40,7 +40,6 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(textDidChange) name:UITextViewTextDidChangeNotification object:self];
 }
 
-
 - (void)setMaxNumberOfLines:(NSUInteger)maxNumberOfLines
 {
     _maxNumberOfLines = maxNumberOfLines;

@@ -62,7 +62,6 @@
 }
 
 #pragma mark - privateMethod
-
 - (void)initialize{
     //导航栏标题
     self.navigationItem.title = @"在线客服";
@@ -70,9 +69,9 @@
     self.inputTextView.delegate = self;
     __weak typeof(self) weakSelf = self;
     self.inputTextView.maxNumberOfLines = 4;
-    [self.inputTextView setFd_textHeightChangeBlock:^(CGFloat maxHeight) {
+    [self.inputTextView setFd_textHeightChangeBlock:^(CGFloat textHeight) {
         // 工具栏高度随输入文字变化
-        weakSelf.inputViewHeightConstraint.constant = maxHeight + 10;
+        weakSelf.inputViewHeightConstraint.constant = textHeight + 10;
         [UIView animateWithDuration:0.25 animations:^{
             [weakSelf.view layoutIfNeeded];
           //  [weakSelf chatTableViewScrollToBottom];
@@ -105,14 +104,7 @@
     self.mj_footer = footer;
 }
 
-- (void)showKeyBoard{
-    [self.inputTextView becomeFirstResponder];
-    //消除没有更多数据的状态
-    [self.mj_footer resetNoMoreData];
-}
-
 #pragma mark - 懒加载
-
 - (FDChatMoreView *)moreView{
     if (!_moreView) {
         _moreView = [FDChatMoreView moreView];
@@ -123,8 +115,7 @@
     return _moreView;
 }
 
-- (FDEmotionKeyboard *)emotionKeyboard
-{
+- (FDEmotionKeyboard *)emotionKeyboard{
     if (!_emotionKeyboard) {
         self.emotionKeyboard = [[FDEmotionKeyboard alloc] init];
         // 键盘的宽度
@@ -134,8 +125,7 @@
     return _emotionKeyboard;
 }
 
-- (NSMutableArray *)messageFrames
-{
+- (NSMutableArray *)messageFrames{
     if (_messageFrames == nil) {
         NSArray *array = [NSArray arrayWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"messages.plist" ofType:nil]];
         
@@ -155,9 +145,7 @@
 }
 
 #pragma mark - 通知处理
-
-- (void)keyboardDidChangeFrame:(NSNotification *)noti
-{
+- (void)keyboardDidChangeFrame:(NSNotification *)noti{
     // 如果正在切换键盘，就不要执行后面的代码
     if (self.switchingKeybaord) return;
     // 键盘背景色
@@ -194,7 +182,6 @@
 }
 
 #pragma mark - 键盘处理
-
 - (void)hideKeyBoard{
     [self.inputTextView endEditing:YES];
     //去除按钮选中状态
@@ -251,10 +238,14 @@
     }
 }
 
-#pragma mark - 发消息
+- (void)showKeyBoard{
+    [self.inputTextView becomeFirstResponder];
+    //消除没有更多数据的状态
+    [self.mj_footer resetNoMoreData];
+}
 
-- (void)addMessageWithText:(NSString *)text andType:(FDChatMessageType)type
-{
+#pragma mark - 发消息
+- (void)addMessageWithText:(NSString *)text andType:(FDChatMessageType)type{
     FDChatMessage *message = [[FDChatMessage alloc]init];
     message.text = text;
     
@@ -301,7 +292,6 @@
 }
 
 #pragma mark - IBAction
-
 - (IBAction)onSendMessagePress:(id)sender {
     [self sendMessage];
 }
@@ -329,7 +319,6 @@
 }
 
 #pragma mark - FDChatMoreViewDelegate
-
 - (void)chatMoreView:(FDChatMoreView *)moreView buttonDidSelect:(FDChatMoreViewType)type{
     if (type == FDChatMoreViewTypeCamera) {
         NSLog(@"拍照");
@@ -341,7 +330,6 @@
 }
 
 #pragma mark - UITextViewDelegate
-
 - (void)textViewDidChange:(UITextView *)textView{
     self.sendButton.enabled = textView.hasText;
 }
@@ -354,21 +342,12 @@
     return YES;
 }
 
-#pragma mark - scrollView代理方法
-
--(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
-    [self hideKeyBoard];
-}
-
-#pragma mark - tableView数据源方法
-
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
+#pragma mark - UITableViewDatasource
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
     return self.messageFrames.count;
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
     static NSString *ID = @"messageCell";
     FDChatMessageCell *cell = [tableView dequeueReusableCellWithIdentifier:ID];
     if (cell == nil) {
@@ -378,12 +357,9 @@
     return cell;
 }
 
-#pragma mark - tableView代理方法
-
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+#pragma mark - UITableViewDelegate
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
     FDChatMessageFrame *mf = self.messageFrames[indexPath.row];
     return mf.cellHeight;
 }
-
 @end

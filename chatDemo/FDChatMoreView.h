@@ -16,10 +16,9 @@ typedef NS_ENUM(NSInteger,FDChatMoreViewType) {
 };
 
 @protocol FDChatMoreViewDelegate <NSObject>
-
 - (void)chatMoreView:(FDChatMoreView *)moreView buttonDidSelect:(FDChatMoreViewType)type;
-
 @end
+
 @interface FDChatMoreView : UIView
 @property (nonatomic, weak) id <FDChatMoreViewDelegate>delegate;
 + (instancetype)moreView;
