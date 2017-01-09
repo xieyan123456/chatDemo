@@ -8,7 +8,7 @@
 
 #import "FDEmotionPageView.h"
 #import "UIView+FDExtension.h"
-#import "NSString+Emoji.h"
+#import "NSString+Helper.h"
 #import "FDEmotion.h"
 
 @interface FDEmotionPageView ()

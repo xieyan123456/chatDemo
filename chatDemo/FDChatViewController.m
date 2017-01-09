@@ -15,7 +15,8 @@
 #import "UIView+FDExtension.h"
 #import "FDEmotionKeyboard.h"
 #import "FDEmotion.h"
-#import "NSString+Emoji.h"
+#import "NSString+Helper.h"
+#import "MJRefresh.h"
 
 @interface FDChatViewController ()<FDChatMoreViewDelegate,FDInputTextViewDelegate>
 @property (weak, nonatomic) IBOutlet UITableView *chatTableView;
@@ -37,6 +38,8 @@
 @property (nonatomic, weak) UIButton *selectedButton;
 /** 是否正在切换键盘 */
 @property (nonatomic, assign) BOOL switchingKeybaord;
+/** chatTableView的footer */
+@property (nonatomic, strong) MJRefreshBackFooter *mj_footer;
 @end
 
 @implementation FDChatViewController
@@ -44,6 +47,10 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     [self initialize];
+    // 集成下拉刷新控件(加载更多数据)
+    [self setupDownRefresh];
+    // 集成上拉刷新控件(弹出键盘)
+    [self setupUpRefresh];
     // Do any additional setup after loading the view from its nib.
 }
 
@@ -74,6 +81,22 @@
 - (void)chatTableViewScrollToBottom{
     NSIndexPath *path = [NSIndexPath indexPathForRow:self.messageFrames.count - 1 inSection:0];
     [self.chatTableView scrollToRowAtIndexPath:path atScrollPosition:UITableViewScrollPositionBottom animated:NO];
+}
+
+- (void)setupDownRefresh{
+
+}
+
+- (void)setupUpRefresh{
+    MJRefreshBackFooter *footer = [MJRefreshBackFooter footerWithRefreshingTarget:self refreshingAction:@selector(showKeyBoard)];
+    self.chatTableView.mj_footer = footer;
+    self.mj_footer = footer;
+}
+
+- (void)showKeyBoard{
+    [self.inputTextView becomeFirstResponder];
+    //消除没有更多数据的状态
+    [self.mj_footer resetNoMoreData];
 }
 
 #pragma mark - 懒加载
@@ -182,7 +205,6 @@
     //切换回系统键盘
     self.inputTextView.editable = YES;
     self.inputTextView.inputView = nil;
-
     // 动画效果
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.05 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         // 弹出键盘
@@ -346,7 +368,6 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    
     static NSString *ID = @"messageCell";
     FDChatMessageCell *cell = [tableView dequeueReusableCellWithIdentifier:ID];
     if (cell == nil) {
