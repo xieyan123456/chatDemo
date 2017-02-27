@@ -90,6 +90,7 @@
 }
 
 - (void)chatTableViewScrollToBottom{
+    if (self.messageFrames.count == 0) return;
     NSIndexPath *path = [NSIndexPath indexPathForRow:self.messageFrames.count - 1 inSection:0];
     [self.chatTableView scrollToRowAtIndexPath:path atScrollPosition:UITableViewScrollPositionBottom animated:NO];
 }
@@ -127,7 +128,7 @@
 
 - (NSMutableArray *)messageFrames{
     if (_messageFrames == nil) {
-        NSArray *array = [NSArray arrayWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"messages.plist" ofType:nil]];
+        NSArray *array = nil;
         
         NSMutableArray *arr = [NSMutableArray array];
         for (NSDictionary *dict in array) {
@@ -166,10 +167,15 @@
         [self.fullView removeGestureRecognizer:self.hideKeyboardTap];
     }
     //聊天界面随键盘联动
+    UIEdgeInsets insets = UIEdgeInsetsMake(64 + constant, 0, 0, 0);
+    self.chatTableView.contentInset = insets;
+    self.chatTableView.scrollIndicatorInsets = insets;
     [UIView animateWithDuration:duration animations:^{
+        self.fullView.transform = CGAffineTransformMakeTranslation(0, -constant);
+        if (constant > 0) {
             [self chatTableViewScrollToBottom];
-            self.fullView.transform = CGAffineTransformMakeTranslation(0, -constant);
-       } completion:nil];
+        }
+    } completion:nil];
 }
 
 - (void)emotionDidSelect:(NSNotification *)noti{
@@ -239,9 +245,9 @@
 }
 
 - (void)showKeyBoard{
-    [self.inputTextView becomeFirstResponder];
     //消除没有更多数据的状态
     [self.mj_footer resetNoMoreData];
+    [self.inputTextView becomeFirstResponder];
 }
 
 #pragma mark - 发消息
